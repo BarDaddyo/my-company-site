@@ -97,19 +97,17 @@ export default function BoardPage() {
   function updateTasks(t) { setTasks(t); save(roles, t); }
   function updateBoth(r, t) { setRoles(r); setTasks(t); save(r, t); }
 
-  // --- Infinite scroll via window ---
+  // --- Infinite scroll via IntersectionObserver ---
+  const sentinelRef = useRef(null);
   useEffect(() => {
-    function handleScroll() {
-      const el = scrollRef.current;
-      if (!el) return;
-      if (el.scrollTop + el.clientHeight > el.scrollHeight - 600) {
-        setDaysLoaded(d => d + CHUNK);
-      }
-    }
-    const el = scrollRef.current;
-    if (el) el.addEventListener('scroll', handleScroll, { passive: true });
-    return () => { if (el) el.removeEventListener('scroll', handleScroll); };
-  }, [authed, loading]);
+    if (!authed || loading) return;
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) setDaysLoaded(d => d + CHUNK); },
+      { root: scrollRef.current, threshold: 0.1 }
+    );
+    if (sentinelRef.current) observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [authed, loading, daysLoaded]);
 
   // --- Jump to today ---
   function jumpToday() {
@@ -199,6 +197,8 @@ export default function BoardPage() {
                   onAdd={(rid) => openAdd(rid, date)}
                   onEdit={openEdit} onRemove={removeTask} />
               ))}
+              {/* Sentinel for infinite scroll */}
+              <div ref={sentinelRef} style={{ gridColumn: `1 / -1`, height: 1 }} />
             </div>
           </div>
 
