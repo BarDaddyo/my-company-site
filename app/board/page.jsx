@@ -408,7 +408,7 @@ const CSS = `
 html,body,#__next{height:100%;margin:0;padding:0;overflow:hidden}
 body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg3);color:var(--text1)}
 button{cursor:pointer;font-family:inherit}
-.app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
+.app{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;overflow:hidden;z-index:9999;background:var(--bg3)}
 .top-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg1);border-bottom:0.5px solid var(--border1);flex-shrink:0}
 .top-bar h1{font-size:15px;font-weight:500;color:var(--text2)}
 .top-bar button{font-size:12px;padding:5px 11px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg1);color:var(--text1)}
