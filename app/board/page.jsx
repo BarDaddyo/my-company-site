@@ -97,14 +97,19 @@ export default function BoardPage() {
   function updateTasks(t) { setTasks(t); save(roles, t); }
   function updateBoth(r, t) { setRoles(r); setTasks(t); save(r, t); }
 
-  // --- Infinite scroll ---
-  const handleScroll = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    if (el.scrollTop + el.clientHeight > el.scrollHeight - 500) {
-      setDaysLoaded(d => d + CHUNK);
+  // --- Infinite scroll via window ---
+  useEffect(() => {
+    function handleScroll() {
+      const el = scrollRef.current;
+      if (!el) return;
+      if (el.scrollTop + el.clientHeight > el.scrollHeight - 600) {
+        setDaysLoaded(d => d + CHUNK);
+      }
     }
-  }, []);
+    const el = scrollRef.current;
+    if (el) el.addEventListener('scroll', handleScroll, { passive: true });
+    return () => { if (el) el.removeEventListener('scroll', handleScroll); };
+  }, [authed, loading]);
 
   // --- Jump to today ---
   function jumpToday() {
@@ -179,7 +184,7 @@ export default function BoardPage() {
             onEdit={openEdit} onRemove={removeTask} />
 
           {/* Scrollable grid */}
-          <div className="scroll-area" ref={scrollRef} onScroll={handleScroll}>
+          <div className="scroll-area" ref={scrollRef}>
             <div className="grid-wrap" style={{ gridTemplateColumns: colTemplate }}>
               {/* Sticky header row */}
               <div className="corner-cell">date</div>
@@ -400,15 +405,15 @@ const CSS = `
   --text1:#e8e7e2;--text2:#a0a09a;--text3:#6a6a64;
   --border1:rgba(255,255,255,.1);--border2:rgba(255,255,255,.18);
 }}
-html,body{height:100%;overflow:hidden}
+html,body,#__next{height:100%;margin:0;padding:0;overflow:hidden}
 body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg3);color:var(--text1)}
 button{cursor:pointer;font-family:inherit}
-.app{display:flex;flex-direction:column;height:100vh}
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
 .top-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg1);border-bottom:0.5px solid var(--border1);flex-shrink:0}
 .top-bar h1{font-size:15px;font-weight:500;color:var(--text2)}
 .top-bar button{font-size:12px;padding:5px 11px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg1);color:var(--text1)}
 .top-bar button:hover{background:var(--bg2)}
-.middle{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+.middle{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
 .scroll-area{flex:1;overflow:auto;min-height:0}
 .grid-wrap{display:grid;min-width:max-content}
 .corner-cell{position:sticky;top:0;left:0;z-index:4;background:var(--bg2);border-right:0.5px solid var(--border1);border-bottom:0.5px solid var(--border1);padding:0 10px;display:flex;align-items:center;font-size:10px;color:var(--text3);min-height:46px;min-width:80px}
@@ -435,18 +440,18 @@ button{cursor:pointer;font-family:inherit}
 .notes-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.4;flex-shrink:0;display:inline-block}
 .cell-add{opacity:0;font-size:10px;color:var(--text3);padding:2px 3px;border:none;background:none;text-align:left}
 .task-cell:hover .cell-add,.today-cell:hover .cell-add,.oneday-cell:hover .cell-add{opacity:1}
-.today-strip{flex-shrink:0;display:grid;border-bottom:2px solid var(--border2);background:var(--bg1);overflow-x:auto}
+.today-strip{flex-shrink:0;display:grid;border-bottom:2px solid var(--border2);background:var(--bg1);overflow-x:auto;min-height:52px}
 .today-label{position:sticky;left:0;background:#E1F5EE;border-right:0.5px solid var(--border1);padding:8px 10px;display:flex;flex-direction:column;justify-content:center;min-width:80px;z-index:2}
 .today-label p{font-size:11px;font-weight:500;color:#085041}
 .today-label span{font-size:9px;color:#1D9E75;margin-top:2px}
-.today-cell{border-right:0.5px solid var(--border1);padding:6px 7px;display:flex;flex-direction:column;gap:3px;min-width:175px;cursor:pointer}
+.today-cell{border-right:0.5px solid var(--border1);padding:6px 7px;display:flex;flex-direction:column;gap:3px;min-width:175px;cursor:pointer;min-height:52px}
 .today-cell:hover{background:#f0faf6}
 @media(prefers-color-scheme:dark){.today-label{background:#0a2e22}.today-label p{color:#9FE1CB}.today-label span{color:#5DCAA5}.today-cell:hover{background:#0d3828}}
-.oneday-strip{flex-shrink:0;display:grid;border-top:2px solid var(--border2);background:var(--bg1);overflow-x:auto}
+.oneday-strip{flex-shrink:0;display:grid;border-top:2px solid var(--border2);background:var(--bg1);overflow-x:auto;min-height:52px}
 .oneday-label{position:sticky;left:0;background:var(--bg2);border-right:0.5px solid var(--border1);padding:8px 10px;display:flex;flex-direction:column;justify-content:center;min-width:80px;z-index:2}
 .oneday-label p{font-size:11px;font-weight:500;color:var(--text2)}
 .oneday-label span{font-size:9px;color:var(--text3);margin-top:2px}
-.oneday-cell{border-right:0.5px solid var(--border1);padding:6px 7px;display:flex;flex-direction:column;gap:3px;min-width:175px;cursor:pointer}
+.oneday-cell{border-right:0.5px solid var(--border1);padding:6px 7px;display:flex;flex-direction:column;gap:3px;min-width:175px;cursor:pointer;min-height:52px}
 .oneday-cell:hover{background:var(--bg2)}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:50;align-items:center;justify-content:center}
 .overlay.open{display:flex}
